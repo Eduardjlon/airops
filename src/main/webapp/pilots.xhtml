@@ -1,0 +1,72 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="content">
+        <h2>Pilotos</h2>
+
+        <h:form id="frmPilots">
+            <p:commandButton value="Nuevo" icon="pi pi-plus" styleClass="mb-3"
+                             actionListener="#{pilotBean.newPilot}"
+                             process="@this"
+                             update=":frmPilots:dlgPilot"
+                             resetValues="true"
+                             oncomplete="PF('dlgPilot').show()"/>
+
+            <p:dataTable id="tblPilots" value="#{pilotBean.list}" var="p"
+                         paginator="true" rows="8" styleClass="shadow-2">
+                <p:column headerText="Nombre">#{p.fullName}</p:column>
+                <p:column headerText="Licencia">#{p.licenseCode}</p:column>
+                <p:column headerText="Email">#{p.email}</p:column>
+                <p:column headerText="Teléfono">#{p.phone}</p:column>
+                <p:column headerText="Horas">#{p.flightHours}</p:column>
+                <p:column style="width:140px;text-align:center">
+                    <p:commandButton icon="pi pi-pencil"
+                                     actionListener="#{pilotBean.edit(p)}"
+                                     process="@this"
+                                     update=":frmPilots:dlgPilot"
+                                     resetValues="true"
+                                     oncomplete="PF('dlgPilot').show()"/>
+                    <p:commandButton icon="pi pi-trash" styleClass="ui-button-danger"
+                                     actionListener="#{pilotBean.delete(p)}"
+                                     process="@this"
+                                     update=":frmPilots:tblPilots :global:msgs"/>
+                </p:column>
+            </p:dataTable>
+
+            <p:dialog id="dlgPilot" header="Piloto" widgetVar="dlgPilot" modal="true"
+                      appendTo="@form" resizable="false" closable="true" draggable="false">
+                <p:messages id="msgPilot" showSummary="true" showDetail="false"
+                            closable="true" layout="list" styleClass="fieldErrors"/>
+
+                <p:panelGrid columns="2" layout="grid" styleClass="p-fluid" columnClasses="w-10rem,w-auto">
+                    <p:outputLabel for="fullName" value="Nombre"/>
+                    <p:inputText id="fullName" value="#{pilotBean.selected.fullName}"/>
+
+                    <p:outputLabel for="lc" value="Licencia (AA-1234)"/>
+                    <p:inputText id="lc" value="#{pilotBean.selected.licenseCode}"/>
+
+                    <p:outputLabel for="em" value="Email"/>
+                    <p:inputText id="em" value="#{pilotBean.selected.email}"/>
+
+                    <p:outputLabel for="ph" value="Teléfono"/>
+                    <p:inputMask id="ph" value="#{pilotBean.selected.phone}"/>
+
+                    <p:outputLabel for="fh" value="Horas de vuelo"/>
+                    <p:spinner id="fh" value="#{pilotBean.selected.flightHours}" min="0" max="40000"/>
+                </p:panelGrid>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Guardar" icon="pi pi-check"
+                                     actionListener="#{pilotBean.save}"
+                                     process="@form"
+                                     update=":global:msgs :frmPilots:tblPilots :frmPilots:msgPilot"
+                                     oncomplete="if (!args.validationFailed) PF('dlgPilot').hide();"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

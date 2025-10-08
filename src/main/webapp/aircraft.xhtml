@@ -1,0 +1,73 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="content">
+        <h2>Aeronaves</h2>
+
+        <h:form id="frmAircraft">
+            <!-- Botón para nueva aeronave -->
+            <p:commandButton value="Nueva aeronave" icon="pi pi-plus" styleClass="mb-3"
+                             actionListener="#{aircraftBean.newItem}"
+                             process="@this"
+                             update=":frmAircraft:dlgAircraft"
+                             resetValues="true"
+                             oncomplete="PF('dlgAircraft').show()"/>
+
+            <!-- Tabla de aeronaves -->
+            <p:dataTable id="tblAircraft" value="#{aircraftBean.aircraftList}" var="a"
+                         paginator="true" rows="8" styleClass="shadow-2">
+                <p:column headerText="Matrícula">#{a.tailNumber}</p:column>
+                <p:column headerText="Modelo">#{a.model}</p:column>
+                <p:column headerText="Asientos">#{a.seats}</p:column>
+                <p:column headerText="Peso máximo (t)">#{a.maxTakeoffWeightTons}</p:column>
+
+                <p:column style="width:140px;text-align:center">
+                    <p:commandButton icon="pi pi-pencil"
+                                     actionListener="#{aircraftBean.edit(a)}"
+                                     process="@this"
+                                     update=":frmAircraft:dlgAircraft"
+                                     resetValues="true"
+                                     oncomplete="PF('dlgAircraft').show()"/>
+                    <p:commandButton icon="pi pi-trash" styleClass="ui-button-danger"
+                                     actionListener="#{aircraftBean.delete(a)}"
+                                     process="@this"
+                                     update=":frmAircraft:tblAircraft :global:msgs"/>
+                </p:column>
+            </p:dataTable>
+
+            <!-- Diálogo para crear/editar aeronave -->
+            <p:dialog id="dlgAircraft" header="Aeronave" widgetVar="dlgAircraft" modal="true"
+                      appendTo="@form" resizable="false" closable="true" draggable="false">
+
+                <p:messages id="msgAircraft" showSummary="true" showDetail="false"
+                            closable="true" layout="list" styleClass="fieldErrors"/>
+
+                <p:panelGrid columns="2" layout="grid" styleClass="p-fluid" columnClasses="w-10rem,w-auto">
+                    <p:outputLabel for="tail" value="Matrícula"/>
+                    <p:inputText id="tail" value="#{aircraftBean.selected.tailNumber}"/>
+
+                    <p:outputLabel for="model" value="Modelo"/>
+                    <p:inputText id="model" value="#{aircraftBean.selected.model}"/>
+
+                    <p:outputLabel for="seats" value="Asientos"/>
+                    <p:inputText id="seats" value="#{aircraftBean.selected.seats}"/>
+
+                    <p:outputLabel for="weight" value="Peso máximo despegue (t)"/>
+                    <p:inputText id="weight" value="#{aircraftBean.selected.maxTakeoffWeightTons}"/>
+                </p:panelGrid>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Guardar" icon="pi pi-check"
+                                     actionListener="#{aircraftBean.save}"
+                                     process="@form"
+                                     update=":global:msgs :frmAircraft:tblAircraft :frmAircraft:msgAircraft"
+                                     oncomplete="if (!args.validationFailed) PF('dlgAircraft').hide();"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

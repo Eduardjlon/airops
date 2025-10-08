@@ -1,0 +1,144 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="content">
+        <h2>Planificación de vuelos</h2>
+
+        <h:outputStylesheet>
+            .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem 1.25rem; }
+            .form-field { display: flex; flex-direction: column; }
+            .form-field label { font-weight: 600; color: #495057; margin-bottom: .25rem; }
+            .form-field .w-full { width: 100%; }
+            .form-footer { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .75rem; }
+            @media (max-width: 992px) { .form-grid { grid-template-columns: 1fr; } }
+        </h:outputStylesheet>
+
+        <h:form id="frmFlights">
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <p:commandButton value="Nuevo vuelo" icon="pi pi-plus"
+                                 actionListener="#{flightBean.newFlight}"
+                                 process="@this"
+                                 update=":frmFlights:dlgFlight"
+                                 resetValues="true"/>
+            </div>
+
+            <!-- Calendario -->
+            <p:schedule id="cal" value="#{flightBean.schedule}" widgetVar="sch"
+                        locale="es" timeZone="GMT-6" allDaySlot="false"
+                        view="dayGridMonth" style="height:600px">
+                <p:ajax event="eventSelect" listener="#{flightBean.onEventSelect}"
+                        update=":frmFlights:dlgFlight"/>
+            </p:schedule>
+
+            <!-- Confirm Dialog para eliminar -->
+            <p:confirmDialog id="confirmDelete" message="¿Está seguro que desea eliminar este vuelo?"
+                             header="Confirmar eliminación" icon="pi pi-exclamation-triangle"
+                             widgetVar="confirmDelete" modal="true" appendTo="@form">
+                <p:commandButton value="Sí" icon="pi pi-check" styleClass="ui-button-danger"
+                                 action="#{flightBean.confirmDelete}"
+                                 update=":global:msgs :frmFlights:cal"
+                                 oncomplete="PF('confirmDelete').hide(); PF('dlgFlight').hide();"/>
+                <p:commandButton value="No" icon="pi pi-times"
+                                 onclick="PF('confirmDelete').hide();" type="button"/>
+            </p:confirmDialog>
+
+            <!-- Diálogo del formulario (Agregar / Editar) -->
+            <p:dialog id="dlgFlight" header="Detalle del vuelo" widgetVar="dlgFlight"
+                      modal="true" appendTo="@form" baseZIndex="100000"
+                      resizable="false" draggable="false" width="920"
+                      visible="#{flightBean.dialogVisible}">
+
+                <p:messages id="msgFlight" showSummary="true" showDetail="false"
+                            closable="true" layout="list" styleClass="fieldErrors"/>
+
+                <div class="form-grid">
+                    <!-- Número -->
+                    <div class="form-field">
+                        <label for="fn">Número (AA-1234) *</label>
+                        <p:inputText id="fn" value="#{flightBean.flight.flightNumber}"
+                                     placeholder="AA-1234" styleClass="w-full"
+                                     oninput="this.value=this.value.toUpperCase()"/>
+                    </div>
+                    <!-- Pasajeros -->
+                    <div class="form-field">
+                        <label for="psg">Pasajeros</label>
+                        <p:spinner id="psg" value="#{flightBean.flight.passengers}" min="1" max="350" styleClass="w-full"/>
+                    </div>
+                    <!-- Origen -->
+                    <div class="form-field">
+                        <label for="org">Origen (IATA) *</label>
+                        <p:inputText id="org" value="#{flightBean.flight.originIata}" styleClass="w-full"
+                                     oninput="this.value=this.value.toUpperCase()"/>
+                    </div>
+                    <!-- Destino -->
+                    <div class="form-field">
+                        <label for="dst">Destino (IATA) *</label>
+                        <p:inputText id="dst" value="#{flightBean.flight.destinationIata}" styleClass="w-full"
+                                     oninput="this.value=this.value.toUpperCase()"/>
+                    </div>
+                    <!-- Salida -->
+                    <div class="form-field">
+                        <label for="dep">Salida *</label>
+                        <p:datePicker id="dep" value="#{flightBean.flight.departure}"
+                                      showTime="true" showIcon="true" hourFormat="24" pattern="yyyy-MM-dd HH:mm"
+                                      styleClass="w-full"/>
+                    </div>
+                    <!-- Llegada -->
+                    <div class="form-field">
+                        <label for="arr">Llegada *</label>
+                        <p:datePicker id="arr" value="#{flightBean.flight.arrival}"
+                                      showTime="true" showIcon="true" hourFormat="24" pattern="yyyy-MM-dd HH:mm"
+                                      styleClass="w-full"/>
+                    </div>
+                    <!-- Piloto -->
+                    <div class="form-field">
+                        <label for="pil">Piloto *</label>
+                        <p:selectOneMenu id="pil" value="#{flightBean.flight.pilot}"
+                                         converter="pilotConverter" filter="true" filterMatchMode="contains"
+                                         placeholder="Seleccione..." styleClass="w-full">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true"/>
+                            <f:selectItems value="#{flightBean.pilots}" var="p"
+                                           itemValue="#{p}" itemLabel="#{p.fullName} (#{p.licenseCode})"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <!-- Aeronave -->
+                    <div class="form-field">
+                        <label for="ac">Aeronave *</label>
+                        <p:selectOneMenu id="ac" value="#{flightBean.flight.aircraft}"
+                                         converter="aircraftConverter" filter="true" filterMatchMode="contains"
+                                         placeholder="Seleccione..." styleClass="w-full">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true"/>
+                            <f:selectItems value="#{flightBean.aircraft}" var="a"
+                                           itemValue="#{a}" itemLabel="#{a.tailNumber} - #{a.model}"/>
+                        </p:selectOneMenu>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <f:facet name="footer">
+                    <p:divider/>
+                    <div class="form-footer">
+                        <p:commandButton value="Guardar" icon="pi pi-check"
+                                         action="#{flightBean.save}"
+                                         process=":frmFlights:dlgFlight"
+                                         update=":global:msgs :frmFlights:cal :frmFlights:msgFlight"
+                                         oncomplete="if (!args || !args.validationFailed) PF('dlgFlight').hide();"/>
+                        <p:commandButton value="Eliminar" icon="pi pi-trash" styleClass="ui-button-danger"
+                                         onclick="PF('confirmDelete').show(); return false;"
+                                         rendered="#{not empty flightBean.selected}"/>
+                        <p:commandButton value="Cancelar" icon="pi pi-times"
+                                         onclick="PF('dlgFlight').hide(); return false;"
+                                         styleClass="ui-button-secondary"/>
+                    </div>
+                </f:facet>
+            </p:dialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>
