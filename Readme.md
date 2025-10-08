@@ -1,5 +1,5 @@
 Integrantes:
 
-Andrea Lopez
-Luis Franco
-Jonathan Jolón
+Andrea Alejandra Lopez Jimenez
+Luis Angel Franco Cruz
+Jonathan Eduardo Jolón García
